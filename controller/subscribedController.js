@@ -55,31 +55,10 @@
 // {"Bus Alert", "Bus leave WEC in 10 minutes", [], departure time - 10}
 import subscribeModel from "../models/subscribedModel.js";
 
-// Add Subscription
-// const subscribeUserToRoute = async (req, res) => {
-//   const { userID, RouteID } = req.body;
 
-//   if (!userID || !RouteID) {
-//     return res.status(400).json({ message: 'userID and routeID are required' });
-//   }
-
-//   try {
-//     const existingSubscription = await subscribeModel.findOne({ userID, RouteID });
-//     if (existingSubscription) {
-//       return res.status(409).json({ message: 'User is already subscribed to this route' });
-//     }
-
-//     const newSubscription = new subscribeModel({ userID, RouteID });
-//     await newSubscription.save();
-
-//     res.status(201).json({ message: 'Subscription added successfully', subscription: newSubscription });
-//   } catch (error) {
-//     res.status(500).json({ message: 'Error adding subscription', error: error.message });
-//   }
-// };
  // Create a function to add a subscription better option
-const subscribeUserToRoute = async (req, res) => {
-  const { userID, RouteID } = req.body;
+ const subscribeUserToRoute = async (req, res) => {
+    const { userID, RouteID } = req.params;
 
     // Check if both fields are provided
     if (!userID || !RouteID) {
@@ -87,22 +66,39 @@ const subscribeUserToRoute = async (req, res) => {
     }
 
     try {
-        // Create a new subscription
-        const newSubscription = new subscribeModel({
-            userID,
-            RouteID,
-        });
+        // Find existing subscription - use findOne instead of find
+        const subscription = await subscribeModel.findOne({ RouteID });
 
-        // Save the subscription to the database
-        await newSubscription.save();
+        if (!subscription) {
+            // Create a new subscription
+            const newSubscription = new subscribeModel({
+                userIDS: [userID],
+                RouteID,
+            });
 
-        // Respond with success
-        res.status(201).json({ message: 'Subscription added successfully', subscription: newSubscription });
+            const savedSubscription = await newSubscription.save();
+            return res.status(200).json(savedSubscription);
+        }
+
+        // Check if user is already subscribed
+        if (subscription.userIDS.includes(userID)) {
+            return res.status(400).json({ message: 'User already subscribed to this route' });
+        }
+
+        // Update subscription with new user
+        const updatedSubscription = await subscribeModel.findOneAndUpdate(
+            { RouteID },
+            { $push: { userID: userID } },
+            { new: true }
+        );
+        
+        return res.status(200).json(updatedSubscription);
+
     } catch (error) {
-        // Handle any errors
-        res.status(500).json({ message: 'Error adding subscription', error: error.message });
+        console.error('Subscription error:', error);
+        return res.status(500).json({ message: 'Error adding subscription', error: error.message });
     }
-}
+};
 
 // Remove Subscription
 const removeSubscription = async (req, res) => {
@@ -127,7 +123,7 @@ const removeSubscription = async (req, res) => {
 // List Subscriptions
 const listsubs = async (req, res) => {
   try {
-    const subs = await subscribeModel.find({}, 'RouteID userID -_id');
+    const subs = await subscribeModel.find();
     res.json(subs);
   } catch (error) {
     console.error(error);

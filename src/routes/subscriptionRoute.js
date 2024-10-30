@@ -3,7 +3,7 @@ import { listsubs, subscribeUserToRoute, removeSubscription } from '../../contro
 
 const subRouter = express.Router();
 
-subRouter.post("/addsub", subscribeUserToRoute);
+subRouter.post("/addsub/:userID/:RouteID", subscribeUserToRoute);
 subRouter.delete("/removesub", removeSubscription);
 subRouter.get("/listsub", listsubs);
 
