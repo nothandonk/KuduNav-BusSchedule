@@ -56,27 +56,53 @@
 import subscribeModel from "../models/subscribedModel.js";
 
 // Add Subscription
+// const subscribeUserToRoute = async (req, res) => {
+//   const { userID, RouteID } = req.body;
+
+//   if (!userID || !RouteID) {
+//     return res.status(400).json({ message: 'userID and routeID are required' });
+//   }
+
+//   try {
+//     const existingSubscription = await subscribeModel.findOne({ userID, RouteID });
+//     if (existingSubscription) {
+//       return res.status(409).json({ message: 'User is already subscribed to this route' });
+//     }
+
+//     const newSubscription = new subscribeModel({ userID, RouteID });
+//     await newSubscription.save();
+
+//     res.status(201).json({ message: 'Subscription added successfully', subscription: newSubscription });
+//   } catch (error) {
+//     res.status(500).json({ message: 'Error adding subscription', error: error.message });
+//   }
+// };
+ // Create a function to add a subscription better option
 const subscribeUserToRoute = async (req, res) => {
   const { userID, RouteID } = req.body;
 
-  if (!userID || !RouteID) {
-    return res.status(400).json({ message: 'userID and routeID are required' });
-  }
-
-  try {
-    const existingSubscription = await subscribeModel.findOne({ userID, RouteID });
-    if (existingSubscription) {
-      return res.status(409).json({ message: 'User is already subscribed to this route' });
+    // Check if both fields are provided
+    if (!userID || !RouteID) {
+        return res.status(400).json({ message: 'UserID and RouteID are required' });
     }
 
-    const newSubscription = new subscribeModel({ userID, RouteID });
-    await newSubscription.save();
+    try {
+        // Create a new subscription
+        const newSubscription = new subscribeModel({
+            userID,
+            RouteID,
+        });
 
-    res.status(201).json({ message: 'Subscription added successfully', subscription: newSubscription });
-  } catch (error) {
-    res.status(500).json({ message: 'Error adding subscription', error: error.message });
-  }
-};
+        // Save the subscription to the database
+        await newSubscription.save();
+
+        // Respond with success
+        res.status(201).json({ message: 'Subscription added successfully', subscription: newSubscription });
+    } catch (error) {
+        // Handle any errors
+        res.status(500).json({ message: 'Error adding subscription', error: error.message });
+    }
+}
 
 // Remove Subscription
 const removeSubscription = async (req, res) => {
