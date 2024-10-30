@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 const stopSchema = new mongoose.Schema({
     stopId: {type: String,required: true},
+    stopName: {type:String,required:true},
     arrivalTime: {type: String,required: true},
     departureTime: {type: String,required: true},
   });
